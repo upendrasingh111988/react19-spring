@@ -5,6 +5,8 @@ import com.react_springboot.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
     private UserRepo userRepo;
@@ -15,5 +17,8 @@ public class UserService {
 
     public   User createUser(User user){
       return   userRepo.save(user);
+    }
+    public List<User> getAllUsers(){
+       return   userRepo.findAll();
     }
 }
