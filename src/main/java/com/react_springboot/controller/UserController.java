@@ -2,7 +2,6 @@ package com.react_springboot.controller;
 
 import com.react_springboot.entity.User;
 import com.react_springboot.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +28,14 @@ public class UserController {
     public ResponseEntity<List<User>> getAllUsers(){
         List<User> usersFromDb = userService.getAllUsers();
         return ResponseEntity.ok(usersFromDb);
+    }
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<User> getUserByUserId(@PathVariable Integer userId){
+        User userById = userService.getUserById(userId);
+        return ResponseEntity.ok(userById);
+    }
+    @PutMapping("/users/{userId}")
+    public User updateUser(@RequestBody User user , @PathVariable Integer userId){
+        return userService.updateUser(user,userId);
     }
 }
