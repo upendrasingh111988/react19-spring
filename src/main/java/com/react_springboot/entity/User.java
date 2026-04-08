@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.*;
+
 
 @Entity
 public class User {
@@ -13,16 +13,20 @@ public class User {
     private Integer userId;
     private String username;
     private String email;
+    private String password;
     private int age;
+    private String role;  // ADMIN / USER
 
     public User() {
     }
 
-    public User(Integer userId, String username, String email, int age) {
+    public User(Integer userId, String username,String password, String email, int age, String role) {
         this.userId = userId;
         this.username = username;
+        this.password= password;
         this.email = email;
         this.age = age;
+        this.role= role;
     }
 
     public Integer getUserId() {
@@ -55,5 +59,21 @@ public class User {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
