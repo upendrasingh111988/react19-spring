@@ -28,7 +28,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // ✅ Skip auth endpoints
+        // ✅ Skip auth endpoints (login/register)
         if (path.startsWith("/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // ✅ Avoid NPE
+        // ✅ No token → continue without authentication
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -48,9 +48,17 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUserName(token);
             String role = jwtUtil.getRole(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // 🔥 DEBUG (remove later)
+            System.out.println("USERNAME: " + username);
+            System.out.println("ROLE: " + role);
 
-                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+            // ✅ FIX: check BOTH username and role
+            if (username != null && role != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                var authorities = List.of(
+                        new SimpleGrantedAuthority("ROLE_" + role)
+                );
 
                 var authToken = new UsernamePasswordAuthenticationToken(
                         username,
@@ -62,7 +70,8 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            // ✅ Invalid token -> ignore and continue
+            // ❌ Token invalid → do NOT authenticate
+            System.out.println("JWT Error: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

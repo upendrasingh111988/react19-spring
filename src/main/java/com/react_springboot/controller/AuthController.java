@@ -1,10 +1,15 @@
 package com.react_springboot.controller;
 
+import com.react_springboot.entity.User;
+import com.react_springboot.entity.dto.AuthResponse;
+import com.react_springboot.entity.dto.LoginRequest;
+import com.react_springboot.service.UserService;
 import com.react_springboot.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -12,21 +17,18 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody Map<String, String> request) {
+    public AuthResponse login(@RequestBody LoginRequest request) {
 
-        String username = request.get("username");
-        String password = request.get("password");
+        User user = userService
+                .findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 🔥 Replace with DB validation
-        if ("admin".equals(username) && "admin123".equals(password)) {
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
-            String token = jwtUtil.generateToken(username, "ADMIN");
-
-            return Map.of("token", token);
-        }
-
-        throw new RuntimeException("Invalid credentials");
+        return new AuthResponse(token, user.getUsername(), user.getRole());
     }
 }

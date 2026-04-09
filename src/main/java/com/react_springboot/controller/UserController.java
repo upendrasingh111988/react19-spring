@@ -17,7 +17,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+   @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/createUser")
     public ResponseEntity<User> createUser(@RequestBody User user){
 

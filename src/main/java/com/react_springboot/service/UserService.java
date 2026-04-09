@@ -35,4 +35,9 @@ public class UserService {
         existingUser.setAge(user.getAge());
         return userRepo.save(existingUser);
     }
+
+
+    public Optional<User> findByUsername(String username) {
+        return userRepo.findByUsername(username); // ✅ LINK TO JPA
+    }
 }
