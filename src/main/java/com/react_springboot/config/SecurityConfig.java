@@ -17,29 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//
-//        http
-//                .cors(cors -> {}) // ✅ already correct
-//                .csrf(csrf -> csrf.disable())
-//
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/auth/**")
-//                        .permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//
-//                .formLogin(form -> form.disable())
-//                .httpBasic(basic -> basic.disable())
-//
-//                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
+    public SecurityConfig(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,14 +31,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-
-                        // ✅ Public APIs
                         .requestMatchers("/auth/**").permitAll()
-
-                        // ✅ ADMIN only
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-
-                        // ✅ Other APIs require login
                         .anyRequest().authenticated()
                 )
 
@@ -68,29 +44,19 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔥 ADD THIS METHOD
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
 
-        org.springframework.web.cors.CorsConfiguration configuration =
-                new org.springframework.web.cors.CorsConfiguration();
+        var configuration = new org.springframework.web.cors.CorsConfiguration();
 
         configuration.setAllowCredentials(true);
         configuration.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
-        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(java.util.List.of("*"));
 
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-                new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 }

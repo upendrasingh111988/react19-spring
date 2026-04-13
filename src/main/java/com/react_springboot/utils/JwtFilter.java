@@ -17,8 +17,11 @@ import java.util.List;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+
+    public JwtFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -26,9 +29,10 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        System.out.println("🔥 FILTER HIT");
+
         String path = request.getServletPath();
 
-        // ✅ Skip auth endpoints (login/register)
         if (path.startsWith("/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -36,7 +40,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // ✅ No token → continue without authentication
+        System.out.println("PATH: " + path);
+        System.out.println("HEADER: " + authHeader);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -48,30 +54,25 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUserName(token);
             String role = jwtUtil.getRole(token);
 
-            // 🔥 DEBUG (remove later)
             System.out.println("USERNAME: " + username);
             System.out.println("ROLE: " + role);
 
-            // ✅ FIX: check BOTH username and role
             if (username != null && role != null &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                var authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + role)
-                );
+                List<SimpleGrantedAuthority> authorities =
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-                var authToken = new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        authorities
-                );
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+                System.out.println("✅ AUTH SET: " + auth);
             }
 
         } catch (Exception e) {
-            // ❌ Token invalid → do NOT authenticate
-            System.out.println("JWT Error: " + e.getMessage());
+            System.out.println("❌ JWT ERROR: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
